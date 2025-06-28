@@ -82,13 +82,26 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
-func Logout(c *fiber.Ctx) error {
-	// get token from authorization
-	headers := c.GetReqHeaders()
-	bearerToken := headers["Authorization"]
+func Me(c *fiber.Ctx) error {
+	_, err := utils.GetBearerToken(c)
+	if err != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
+	}
 
-	if len(bearerToken) < 1 || bearerToken[0] == "" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Bearer token required")
+	return c.JSON(fiber.Map{
+		"message": "Get current user",
+		"data": fiber.Map{
+			"id":        "{UUID}",
+			"full_name": "{FULL_NAME}",
+			"email":     "{EMAIL}",
+		},
+	})
+}
+
+func Logout(c *fiber.Ctx) error {
+	_, err := utils.GetBearerToken(c)
+	if err != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
 
 	return c.JSON(fiber.Map{

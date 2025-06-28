@@ -17,9 +17,10 @@ func main() {
 	app.Use(recover.New())
 
 	app.Get("/", handlers.RootHandler)
-	app.Post("/login", handlers.Login)
-	app.Post("/register", handlers.Register)
-	app.Post("/logout", handlers.Logout)
+	app.Post("/auth/login", handlers.Login)
+	app.Post("/auth/register", handlers.Register)
+	app.Post("/auth/logout", handlers.Logout)
+	app.Get("/auth/me", handlers.Me)
 
 	err := app.Listen(":3000")
 
