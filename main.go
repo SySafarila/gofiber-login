@@ -1,14 +1,11 @@
 package main
 
 import (
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"log"
 	"mygo/handlers"
 )
-
-var Validate = validator.New()
 
 func main() {
 	app := fiber.New(fiber.Config{
