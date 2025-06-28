@@ -24,19 +24,20 @@ func ParseErrorMessage(err error) []string {
 		for _, fieldError := range err.(validator.ValidationErrors) {
 			var message string
 			tag := fieldError.Tag()
-			fieldName := fieldError.Field()
+			fieldName := strings.ToLower(fieldError.Field())
+			param := fieldError.Param()
 
 			switch tag {
 			case "required":
-				message = "Field " + strings.ToLower(fieldName) + " is required"
+				message = "Field " + fieldName + " is required"
 			case "email":
-				message = "Field " + strings.ToLower(fieldName) + " must be a valid email address"
+				message = "Field " + fieldName + " must be a valid email address"
 			case "min":
-				message = "Field " + strings.ToLower(fieldName) + " must be at least " + fieldError.Param() + " characters/numeric"
+				message = "Field " + fieldName + " must be at least " + param + " characters/numeric"
 			case "max":
-				message = "Field " + strings.ToLower(fieldName) + " must be at most " + fieldError.Param() + " characters/numeric"
+				message = "Field " + fieldName + " must be at most " + param + " characters/numeric"
 			default:
-				message = "Field " + strings.ToLower(fieldName) + " is invalid"
+				message = "Field " + fieldName + " is invalid"
 			}
 
 			errorMessages = append(errorMessages, message)

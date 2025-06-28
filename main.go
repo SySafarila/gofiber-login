@@ -18,6 +18,8 @@ func main() {
 
 	app.Get("/", handlers.RootHandler)
 	app.Post("/login", handlers.Login)
+	app.Post("/register", handlers.Register)
+	app.Post("/logout", handlers.Logout)
 
 	err := app.Listen(":3000")
 
