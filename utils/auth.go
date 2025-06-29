@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetBearerToken(c *fiber.Ctx) (string, error) {
@@ -14,4 +15,12 @@ func GetBearerToken(c *fiber.Ctx) (string, error) {
 	}
 
 	return bearerToken[0], nil
+}
+
+func CompareHashPassword(password string, hash string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	if err != nil {
+		return err
+	}
+	return nil
 }

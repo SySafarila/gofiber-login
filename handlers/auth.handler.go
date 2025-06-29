@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"mygo/models"
+	"mygo/services"
 	"mygo/utils"
 )
 
@@ -38,13 +40,34 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// check email on database
+	user, err := services.CheckUser(body.Email)
+	if err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Credentials not match")
+	}
+
 	// check password
+	errCompare := utils.CompareHashPassword(body.Password, user.Password)
+	if errCompare != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Credentials not match")
+	}
+
+	var userResponse models.UserResponse
+	var username *string
+	if user.Username.Valid {
+		username = &user.Username.String
+	}
+	userResponse = models.UserResponse{
+		Id:        user.Id,
+		Name:      user.Name,
+		Email:     user.Email,
+		Username:  username,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
 
 	return c.JSON(fiber.Map{
 		"message": "Login success",
-		"data": fiber.Map{
-			"token": "{JWT_TOKEN}",
-		},
+		"data":    userResponse,
 	})
 }
 

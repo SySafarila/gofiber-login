@@ -3,11 +3,27 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
+	"mygo/database"
 	"mygo/handlers"
 )
 
 func main() {
+	dsn := "host=localhost user=postgres password='' dbname=golang_auth port=5432"
+	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if errDb != nil {
+		panic(errDb)
+	}
+
+	//errMigrate := db.AutoMigrate(&models.User{})
+	//if errMigrate != nil {
+	//	panic(errMigrate)
+	//}
+	// assign db
+	database.DB = db
+
 	app := fiber.New(fiber.Config{
 		ErrorHandler: handlers.ErrorHandler,
 	})
