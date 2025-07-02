@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/go-playground/validator/v10"
-	"strings"
 )
 
 var Validate *validator.Validate = validator.New()
@@ -24,9 +23,9 @@ func ParseErrorMessage(err error) []string {
 		for _, fieldError := range err.(validator.ValidationErrors) {
 			var message string
 			tag := fieldError.Tag()
-			fieldName := strings.ToLower(fieldError.Field())
+			fieldName := ToSnakeCase(fieldError.Field())
 			param := fieldError.Param()
-
+			
 			switch tag {
 			case "required":
 				message = "Field " + fieldName + " is required"

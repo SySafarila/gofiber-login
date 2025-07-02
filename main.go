@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	dsn := "host=localhost user=postgres password='' dbname=golang_auth port=5432"
+	dsn := "host=localhost user=postgres password='' dbname=slime port=5432"
 	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if errDb != nil {
 		panic(errDb)

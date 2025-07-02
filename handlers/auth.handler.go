@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"mygo/models"
 	"mygo/services"
 	"mygo/utils"
+	"time"
 )
 
 type LoginStruct struct {
@@ -52,15 +55,11 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	var userResponse models.UserResponse
-	var username *string
-	if user.Username.Valid {
-		username = &user.Username.String
-	}
 	userResponse = models.UserResponse{
 		Id:        user.Id,
 		Name:      user.Name,
 		Email:     user.Email,
-		Username:  username,
+		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
@@ -88,6 +87,12 @@ func Register(c *fiber.Ctx) error {
 		}
 	}
 
+	// check email on database
+	_, err := services.CheckUser(body.Email)
+	if err == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "User already registered")
+	}
+
 	// check password and confirm password
 	if body.Password != body.PasswordConfirm {
 		return &utils.ValidationError{
@@ -97,8 +102,24 @@ func Register(c *fiber.Ctx) error {
 		}
 	}
 
-	// check email on database
+	passwordHashByte, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Fail to hash password")
+	}
+
 	// register credentials to database
+	services.RegisterUser(models.User{
+		Id:          uuid.New().String(),
+		IncrementId: 0,
+		Name:        body.FullName,
+		Username:    nil,
+		Email:       body.Email,
+		Password:    string(passwordHashByte),
+		IsVerified:  false,
+		CreatedAt:   time.Time{},
+		UpdatedAt:   time.Time{},
+		//DeletedAt:   gorm.DeletedAt{},
+	})
 
 	return c.JSON(fiber.Map{
 		"message": "Register success",
