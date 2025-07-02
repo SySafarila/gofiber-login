@@ -54,19 +54,20 @@ func Login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Credentials not match")
 	}
 
-	var userResponse models.UserResponse
-	userResponse = models.UserResponse{
-		Id:        user.Id,
-		Name:      user.Name,
-		Email:     user.Email,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
+	token, errToken := utils.CreateUserToken(utils.UserTokenStruct{
+		UserId: user.Id,
+		Iat:    time.Now().Unix(),
+		Exp:    time.Now().Add(time.Hour * 24).Unix(),
+	})
+	if errToken != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Error creating token")
 	}
 
 	return c.JSON(fiber.Map{
 		"message": "Login success",
-		"data":    userResponse,
+		"data": fiber.Map{
+			"token": token,
+		},
 	})
 }
 
