@@ -2,9 +2,12 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"mygo/models"
+	"strings"
 )
 
 type UserTokenStruct struct {
@@ -21,7 +24,10 @@ func GetBearerToken(c *fiber.Ctx) (string, error) {
 		return "", errors.New("bearer token required")
 	}
 
-	return bearerToken[0], nil
+	// split bearer token
+	results := strings.Split(bearerToken[0], "Bearer ")
+
+	return results[1], nil
 }
 
 func CompareHashPassword(password string, hash string) error {
@@ -32,20 +38,24 @@ func CompareHashPassword(password string, hash string) error {
 	return nil
 }
 
-func CreateUserToken(data UserTokenStruct) (string, error) {
-	var (
-		key []byte
-		t   *jwt.Token
-		s   string
-	)
-
-	key = []byte("MYSECRETKEY")
-	t = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": data.UserId,
-		"iat":     data.Iat,
-		"exp":     data.Exp,
+func ParseToken(token string) (*models.TokenClaims, error) {
+	claims := &models.TokenClaims{}
+	tokenClaims, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte("MYSECRETKEY"), nil
 	})
-	s, _ = t.SignedString(key)
 
-	return s, nil
+	if err != nil {
+		fmt.Printf("Token parse error: %v\n", err)
+		return nil, err
+	}
+
+	if !tokenClaims.Valid {
+		fmt.Printf("Token invalid")
+		return nil, err
+	}
+
+	return claims, nil
 }

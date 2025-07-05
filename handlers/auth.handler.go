@@ -43,7 +43,7 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// check email on database
-	user, err := services.CheckUser(body.Email)
+	user, err := services.CheckUserByEmail(body.Email)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, "Credentials not match")
 	}
@@ -54,14 +54,7 @@ func Login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Credentials not match")
 	}
 
-	token, errToken := utils.CreateUserToken(utils.UserTokenStruct{
-		UserId: user.Id,
-		Iat:    time.Now().Unix(),
-		Exp:    time.Now().Add(time.Hour * 24).Unix(),
-	})
-	if errToken != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating token")
-	}
+	token := user.CreateToken()
 
 	return c.JSON(fiber.Map{
 		"message": "Login success",
@@ -89,7 +82,7 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// check email on database
-	_, err := services.CheckUser(body.Email)
+	_, err := services.CheckUserByEmail(body.Email)
 	if err == nil {
 		return fiber.NewError(fiber.StatusBadRequest, "User already registered")
 	}
@@ -103,8 +96,8 @@ func Register(c *fiber.Ctx) error {
 		}
 	}
 
-	passwordHashByte, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
-	if err != nil {
+	passwordHashByte, errHash := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	if errHash != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Fail to hash password")
 	}
 
@@ -119,7 +112,6 @@ func Register(c *fiber.Ctx) error {
 		IsVerified:  false,
 		CreatedAt:   time.Time{},
 		UpdatedAt:   time.Time{},
-		//DeletedAt:   gorm.DeletedAt{},
 	})
 
 	return c.JSON(fiber.Map{
@@ -128,18 +120,25 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Me(c *fiber.Ctx) error {
-	_, err := utils.GetBearerToken(c)
+	token, err := utils.GetBearerToken(c)
 	if err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
 
+	parseToken, errParse := utils.ParseToken(token)
+	if errParse != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, errParse.Error())
+	}
+
+	userId := parseToken.UserId
+	user, errCheckUser := services.CheckUserById(userId)
+	if errCheckUser != nil {
+		return fiber.NewError(fiber.StatusNotFound, "User not found")
+	}
+
 	return c.JSON(fiber.Map{
 		"message": "Get current user",
-		"data": fiber.Map{
-			"id":        "{UUID}",
-			"full_name": "{FULL_NAME}",
-			"email":     "{EMAIL}",
-		},
+		"data":    user.CreateUserResponse(),
 	})
 }
 
