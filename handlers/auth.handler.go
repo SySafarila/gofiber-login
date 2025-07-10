@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"mygo/middlewares"
 	"mygo/models"
 	"mygo/services"
 	"mygo/utils"
@@ -120,8 +121,8 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Me(c *fiber.Ctx) error {
-	userId := c.Locals("userId").(string)
-	user, errCheckUser := services.CheckUserById(userId)
+	authUser := c.Locals("user").(middlewares.AuthUser)
+	user, errCheckUser := services.CheckUserById(authUser.Id)
 	if errCheckUser != nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")
 	}

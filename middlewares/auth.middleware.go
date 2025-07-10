@@ -5,6 +5,10 @@ import (
 	"mygo/utils"
 )
 
+type AuthUser struct {
+	Id string `json:"id,omitempty"`
+}
+
 func CheckAuth(c *fiber.Ctx) error {
 	token, err := utils.GetBearerToken(c)
 	if err != nil {
@@ -16,12 +20,8 @@ func CheckAuth(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, errParse.Error())
 	}
 
-	userId := parseToken.UserId
-	//user, errCheckUser := services.CheckUserById(userId)
-	//if errCheckUser != nil {
-	//	return fiber.NewError(fiber.StatusNotFound, "User not found")
-	//}
+	user := AuthUser{Id: parseToken.UserId}
 
-	c.Locals("userId", userId)
+	c.Locals("user", user)
 	return c.Next()
 }
