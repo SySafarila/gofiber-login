@@ -120,17 +120,7 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Me(c *fiber.Ctx) error {
-	token, err := utils.GetBearerToken(c)
-	if err != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
-	}
-
-	parseToken, errParse := utils.ParseToken(token)
-	if errParse != nil {
-		return fiber.NewError(fiber.StatusUnauthorized, errParse.Error())
-	}
-
-	userId := parseToken.UserId
+	userId := c.Locals("userId").(string)
 	user, errCheckUser := services.CheckUserById(userId)
 	if errCheckUser != nil {
 		return fiber.NewError(fiber.StatusNotFound, "User not found")

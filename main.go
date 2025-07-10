@@ -8,6 +8,7 @@ import (
 	"log"
 	"mygo/database"
 	"mygo/handlers"
+	"mygo/middlewares"
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: handlers.ErrorHandler,
+		Prefork:      true,
 	})
 	app.Use(recover.New())
 
@@ -33,7 +35,7 @@ func main() {
 	app.Post("/auth/login", handlers.Login)
 	app.Post("/auth/register", handlers.Register)
 	app.Post("/auth/logout", handlers.Logout)
-	app.Get("/auth/me", handlers.Me)
+	app.Get("/auth/me", middlewares.CheckAuth, handlers.Me)
 
 	err := app.Listen(":3000")
 
