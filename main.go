@@ -18,6 +18,8 @@ func main() {
 		panic(errDb)
 	}
 
+	database.InitRedis()
+
 	//errMigrate := db.AutoMigrate(&models.User{})
 	//if errMigrate != nil {
 	//	panic(errMigrate)

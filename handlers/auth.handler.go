@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -56,6 +57,12 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	token := user.CreateToken()
+
+	errCache := utils.CacheToken(token)
+	if errCache != nil {
+		fmt.Println(errCache)
+		return errCache
+	}
 
 	return c.JSON(fiber.Map{
 		"message": "Login success",

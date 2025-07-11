@@ -6,8 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"mygo/database"
 	"mygo/models"
 	"strings"
+	"time"
 )
 
 type UserTokenStruct struct {
@@ -58,4 +60,13 @@ func ParseToken(token string) (*models.TokenClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func CacheToken(token string) error {
+	if !database.IsRedisConnected {
+		return nil
+	}
+
+	err := database.Redis.Set(database.Ctx, token, token, time.Hour*24).Err()
+	return err
 }
